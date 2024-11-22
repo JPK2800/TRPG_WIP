@@ -2,6 +2,7 @@
 
 
 #include "CombatGameMode.h"
+#include "TileControlPawn.h"
 #include "EventDataActor.h"
 
 void ACombatGameMode::BeginPlay()
@@ -116,6 +117,16 @@ void ACombatGameMode::EndPauseForEvent()
 	OnPausePhase.Broadcast(false);
 
 	ActivateCombatPhase(QueuedPhaseAfterEvent);
+}
+
+ATileControlPawn* ACombatGameMode::GetControlPawn()
+{
+	auto* tileControlPawn = UGameplayStatics::GetActorOfClass(GetWorld(), ATileControlPawn::StaticClass());
+	if (tileControlPawn)
+	{
+		return Cast<ATileControlPawn>(tileControlPawn);
+	}
+	return nullptr;
 }
 
 bool ACombatGameMode::LinkToEventDataActor()

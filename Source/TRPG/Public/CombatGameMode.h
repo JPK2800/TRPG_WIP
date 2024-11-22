@@ -11,6 +11,7 @@
 #include "CombatGameMode.generated.h"
 
 class AEventDataActor;
+class ATileControlPawn;
 
 // Enum for all combat phases (and phase transitions)
 UENUM(BlueprintType)
@@ -65,7 +66,6 @@ protected:
 	ECombatPhase QueuedPhaseAfterEvent;		// Phase to transition to after the event(s) are completed
 
 public:
-
 	virtual void BeginFirstPhase();			// Triggers the before-combat phase once the player controller successfully binds to listen to phase change events
 
 	UFUNCTION(BlueprintCallable)
@@ -77,6 +77,9 @@ public:
 
 	UFUNCTION()
 	virtual void EndPauseForEvent();		// Ends the phase logic pause
+
+	UFUNCTION(BlueprintCallable)
+	ATileControlPawn* GetControlPawn();		// Gets the control pawn
 
 protected:
 

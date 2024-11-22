@@ -172,11 +172,17 @@ AGameTile* ATileControlPawn::GetStartingViewTile()
 
 void ATileControlPawn::CancelUnitMovementAndAction()
 {
+	if (!SelectedUnit)
+	{
+		return;
+	}
 	IsUnitMoving = false;
 	IsUnitChoosingAction = false;
 	SelectedUnit->StopMovementToTiles();								// Stop all automatic movements
 	SelectedUnit->SetUnitLocAndRot(SelectedTile, SelectedUnitDir);		// Reset unit position and rotation	
-	RemoveUnitActionMenu();												// Removes the menu widget if it exists
+
+	OnCancelUnitMovementAndAction.Broadcast();
+
 }
 
 void ATileControlPawn::GetAvailableTilesForSelectedUnit(AGameTile* SelectedTile, AGameUnit* CurrentSelectedUnit, TArray<AGameTile*>& FoundNavigableTiles, TArray<AGameTile*>& FoundAttackableTiles, TArray<AGameTile*>& FoundInteractableTiles)
@@ -382,7 +388,7 @@ void ATileControlPawn::SetCameraYaw(ECardinalDirections NewCardinalDir)
 
 void ATileControlPawn::CursorMoveUp()
 {
-	if (HoverTile && IsPlayerPhase && !IsPausedForEvent)
+	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction)
 	{
 		AGameTile* nextTile;
 		switch (CurrentViewRotation)
@@ -414,7 +420,7 @@ void ATileControlPawn::CursorMoveUp()
 
 void ATileControlPawn::CursorMoveDown()
 {
-	if (HoverTile && IsPlayerPhase && !IsPausedForEvent)
+	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction)
 	{
 		AGameTile* nextTile;
 		switch (CurrentViewRotation)
@@ -446,7 +452,7 @@ void ATileControlPawn::CursorMoveDown()
 
 void ATileControlPawn::CursorMoveLeft()
 {
-	if (HoverTile && IsPlayerPhase && !IsPausedForEvent)
+	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction)
 	{
 		AGameTile* nextTile;
 		switch (CurrentViewRotation)
@@ -478,7 +484,7 @@ void ATileControlPawn::CursorMoveLeft()
 
 void ATileControlPawn::CursorMoveRight()
 {
-	if (HoverTile && IsPlayerPhase && !IsPausedForEvent)
+	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction)
 	{
 		AGameTile* nextTile;
 		switch (CurrentViewRotation)
@@ -634,17 +640,16 @@ void ATileControlPawn::InputCancelTile()
 {
 	if (IsPlayerPhase && SelectedTile)
 	{
-		if (IsUnitMoving || IsUnitChoosingAction)
+		if (IsUnitMoving && !IsUnitChoosingAction)
 		{
-			// if a unit is moving or moved and selecting an action, undo the move but keep the unit selected
+			// if a unit is moving, undo the move but keep the unit selected
+			// if the unit is moved, undo is done through the unit turn menu
 			CancelUnitMovementAndAction();
-			OnCancelUnitMovementAndAction.Broadcast();
 		}
-		else
+		else if (!IsUnitMoving && !IsUnitChoosingAction)
 		{
 			// if the unit has not moved yet, undo the unit selection
 			SetSelectedTile(nullptr, nullptr);
-			OnCancelUnitSelection.Broadcast();
 		}
 
 	}
@@ -710,6 +715,11 @@ void ATileControlPawn::SetSelectedTile(AGameTile* Tile, AGameUnit* Unit)
 	}
 
 	OnUnitTileSelected.Broadcast(Tile, Unit);
+
+	if (!Tile || !Unit)
+	{
+		OnCancelUnitSelection.Broadcast();
+	}
 }
 
 void ATileControlPawn::SetUnitMovingToTile(AGameUnit* Unit, AGameTile* Tile, ECardinalDirections Direction)
@@ -724,7 +734,7 @@ void ATileControlPawn::SetUnitMovedToTile(AGameUnit* Unit, AGameTile* Tile)
 	// Unit moved to the target tile - now display options on the new tile
 	IsUnitMoving = false;
 	IsUnitChoosingAction = true;
-	DisplayUnitActionMenu(Unit, Tile);
+	UnitReadyForActions(Unit, Tile);
 }
 
 ECardinalDirections ATileControlPawn::GetCurrentCameraRotation()

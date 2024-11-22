@@ -207,11 +207,9 @@ protected:
 	// Selected tile/unit movement/pathfinding control
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void DisplayUnitActionMenu(AGameUnit* Unit, AGameTile* Tile);	// Called when a unit is moved to a new tile - triggers a new menu 
+	void UnitReadyForActions(AGameUnit* Unit, AGameTile* Tile);	// Called when a unit is moved to a new tile - triggers a new menu 
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void RemoveUnitActionMenu();									// Called when a unit action menu is no longer needed
-
+	UFUNCTION(BlueprintCallable)
 	virtual void CancelUnitMovementAndAction();						// Called when a unit should be returned to their old position and the move should be undone
 
 	// Gets selected-unit surrounding tile displays and signals to the tiles to display this info. Saves these tile pointers.
