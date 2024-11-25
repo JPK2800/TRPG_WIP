@@ -55,6 +55,7 @@ void ATileControlPawn::BeginPlay()
 void ATileControlPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	InterpCameraZoomSettingStep(DeltaTime);
 }
 
 bool ATileControlPawn::BindToCombatGameMode()
@@ -354,11 +355,35 @@ void ATileControlPawn::SetCameraZoomSetting(FZoomLevelData CameraSetting)
 {
 	if (SpringArm)
 	{
-		SpringArm->TargetArmLength = CameraSetting.CameraDistance;
+		CurrentZoomSetting = CameraSetting;
+	}
+}
+
+void ATileControlPawn::InterpCameraZoomSettingStep(float DeltaTime)
+{
+	if (SpringArm && IsZoomingCamera)
+	{
 		FRotator currentRot = SpringArm->GetRelativeRotation();
-		FRotator targetRot = currentRot;
-		targetRot.Pitch = CameraSetting.CameraAngle;
-		SpringArm->SetRelativeRotation(targetRot);
+		FRotator newRot = currentRot;
+		float currentPitch = currentRot.Pitch;
+		float currentArmLen = SpringArm->TargetArmLength;
+
+		float transitionPitch = FMath::FInterpTo(currentPitch, CurrentZoomSetting.CameraAngle, DeltaTime, 5);
+		float transitionArmLen = FMath::FInterpTo(currentArmLen, CurrentZoomSetting.CameraDistance, DeltaTime, 15);
+
+		if (FMath::Abs(currentPitch - transitionPitch) <= .5 && FMath::Abs(currentArmLen - transitionArmLen) <= 1)
+		{
+			IsZoomingCamera = false;
+
+			newRot.Pitch = CurrentZoomSetting.CameraAngle;
+			SpringArm->SetRelativeRotation(newRot);
+			SpringArm->TargetArmLength = CurrentZoomSetting.CameraDistance;
+			return;
+		}
+
+		newRot.Pitch = transitionPitch;
+		SpringArm->SetRelativeRotation(newRot);
+		SpringArm->TargetArmLength = transitionArmLen;	
 	}
 }
 
@@ -567,13 +592,14 @@ void ATileControlPawn::ZoomInCamera()
 		{
 			SetCameraZoomSetting(ZoomMedSettings);
 			CurrentZoomLevel = 2;
-			return;
 		}
 		else if (CurrentZoomLevel == 2)
 		{
 			SetCameraZoomSetting(ZoomMaxSettings);
 			CurrentZoomLevel = 1;
 		}
+		OnZoomChange.Broadcast(CurrentZoomLevel);
+		IsZoomingCamera = true;
 	}
 }
 
@@ -585,13 +611,14 @@ void ATileControlPawn::ZoomOutCamera()
 		{
 			SetCameraZoomSetting(ZoomMedSettings);
 			CurrentZoomLevel = 2;
-			return;
 		}
 		else if (CurrentZoomLevel == 2)
 		{
 			SetCameraZoomSetting(ZoomMinSettings);
 			CurrentZoomLevel = 3;
 		}
+		OnZoomChange.Broadcast(CurrentZoomLevel);
+		IsZoomingCamera = true;
 	}
 }
 

@@ -43,6 +43,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTileMovementConfirm);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCancelUnitSelection);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCancelUnitMovementAndAction);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FZoomChange, uint8, NewZoomLevel);
+
+
 
 
 
@@ -96,6 +99,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	FZoomLevelData ZoomMinSettings;				// Settings when zoomed out
+
+	UPROPERTY(BlueprintAssignable, Category = "Camera")
+	FZoomChange OnZoomChange;					// Fires when zoom level changes
 
 public:
 
@@ -172,7 +178,12 @@ protected:
 
 	ECardinalDirections CurrentViewRotation = ECardinalDirections::UP_DIR;	// The current camera rotation. Up = facing north, Right = facing east, Down = facing south, Left = facing west.
 
+	UPROPERTY(BlueprintReadOnly)
 	uint8 CurrentZoomLevel = 2;	// Current zoom level from 1 to 3. 1 is zoomed in max and 3 is zoomed out max.
+
+	bool IsZoomingCamera = false;	// True when the camera needs to be moved to the current zoom level settings
+
+	FZoomLevelData CurrentZoomSetting = ZoomMedSettings;	// Current zoom
 
 	TArray<AGameTile*> NavigableTiles = TArray<AGameTile*>();		// Tiles that can be travel to when a unit is selected
 	TArray<AGameTile*> AttackableTiles = TArray<AGameTile*>();		// Tiles that can be attacked when a unit is selected
@@ -224,6 +235,8 @@ protected:
 	// Camera control
 
 	virtual void SetCameraZoomSetting(FZoomLevelData CameraSetting);	// Applies camera settings when zooming in/out
+
+	virtual void InterpCameraZoomSettingStep(float DeltaTime);			// Transitions the camera zoom to the target settings
 
 	virtual void SetCameraYaw(ECardinalDirections NewCardinalDir);		// Applies horizontal rotation for camera when meving cam left/right
 
