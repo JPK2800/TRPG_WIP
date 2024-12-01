@@ -131,6 +131,11 @@ public:
 	UFUNCTION()
 	virtual void SetUnitMovedToTile(AGameUnit* Unit, AGameTile* Tile);	// Sets unit to be successfully moved - called by PlayerPathControl
 
+	// Unit action functions
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetUnitActionComplete(AGameUnit* Unit, bool AllowMovement, uint8 RemainingMovement);	// Decrements unit remaining actions
+
 
 	ECardinalDirections GetCurrentCameraRotation();	// Returns the current cam rotation
 

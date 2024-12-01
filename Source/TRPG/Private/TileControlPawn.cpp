@@ -764,6 +764,30 @@ void ATileControlPawn::SetUnitMovedToTile(AGameUnit* Unit, AGameTile* Tile)
 	UnitReadyForActions(Unit, Tile);
 }
 
+void ATileControlPawn::SetUnitActionComplete(AGameUnit* Unit, bool AllowMovement, uint8 RemainingMovement)
+{
+	if (Unit)
+	{
+		Unit->SetUnitRemainingActions(AGameUnit::GetUnitRemainingActions(Unit) - 1);
+
+		if (!AllowMovement && AGameUnit::GetUnitRemainingActions(Unit) == 0)
+		{
+			Unit->SetUnitRemainingSpaces(0);
+		}
+		else
+		{
+			Unit->SetUnitRemainingSpaces(RemainingMovement);
+		}
+
+		if (AGameUnit::GetUnitRemainingActions(Unit) == 0 && AGameUnit::GetUnitRemainingSpaces(Unit) == 0)
+		{
+			// unit is done, deselect this unit automatically
+			IsUnitChoosingAction = false;
+			SetSelectedTile(nullptr, nullptr);
+		}
+	}
+}
+
 ECardinalDirections ATileControlPawn::GetCurrentCameraRotation()
 {
 	return CurrentViewRotation;
