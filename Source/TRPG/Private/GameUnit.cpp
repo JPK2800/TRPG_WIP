@@ -45,6 +45,14 @@ void AGameUnit::DeactivateUnitOnPhaseEnd()
 
 void AGameUnit::SetUnitLocAndRot(AGameTile* TargetTile, ECardinalDirections TargetDirection)
 {
+	if (!TargetTile)
+		return;
+
+	if (CurrentUnitTile)
+	{
+		CurrentUnitTile->SetUnitOnTile(nullptr, ECardinalDirections::NONE); // remove this unit from previous tile data
+	}
+
 	CurrentUnitTile = TargetTile;
 	SetCurrentUnitDirection(TargetDirection);
 
@@ -64,7 +72,16 @@ void AGameUnit::SetUnitLocAndRot(AGameTile* TargetTile, ECardinalDirections Targ
 		case (ECardinalDirections::LEFT_DIR):
 			SetActorRotation(FRotator(0.0f, 270.0f, 0.0f));
 			break;
+		default:
+			break;
 	}
+
+	if (CurrentUnitTile)
+	{
+		CurrentUnitTile->SetUnitOnTile(this, TargetDirection); // remove this unit from previous tile data
+	}
+
+	OnUnitConfirmOnTile.Broadcast(TargetTile);
 }
 
 AGameTile* AGameUnit::GetCurrentUnitTile()
@@ -139,6 +156,36 @@ uint8 AGameUnit::GetUnitMovementForTile(uint8 TerrainType)
 	return 255;
 }
 
+void AGameUnit::GetUnitsInRange(const uint8 MinRange, const uint8 MaxRange, const TArray<TEnumAsByte<EUnitFaction>> TargetFactions, AGameTile* CurrentTile, TArray<AGameTile*> SearchedTiles, TArray<AGameUnit*>& FoundUnits, const uint8 SearchDepth )
+{
+	if (SearchDepth > MaxRange || !CurrentTile || SearchedTiles.Contains(CurrentTile))
+	{
+		// out of range
+		return;
+	}
+
+	if (SearchDepth >= MinRange && SearchDepth <= MaxRange)
+	{
+		AGameUnit* checkUnit;
+		if (CurrentTile->GetUnitOnTile(checkUnit))
+		{
+			if (TargetFactions.Contains(checkUnit->UnitFaction))
+			{
+				// Unit has the correct faction, add to found unit array
+				FoundUnits.AddUnique(checkUnit);
+			}
+		}
+	}
+	SearchedTiles.Add(CurrentTile);
+
+	// Check north/south/east/west tiles
+	GetUnitsInRange(MinRange, MaxRange, TargetFactions, CurrentTile->GetNorthTile(), SearchedTiles, FoundUnits, SearchDepth + 1);
+	GetUnitsInRange(MinRange, MaxRange, TargetFactions, CurrentTile->GetSouthTile(), SearchedTiles, FoundUnits, SearchDepth + 1);
+	GetUnitsInRange(MinRange, MaxRange, TargetFactions, CurrentTile->GetEastTile(), SearchedTiles, FoundUnits, SearchDepth + 1);
+	GetUnitsInRange(MinRange, MaxRange, TargetFactions, CurrentTile->GetWestTile(), SearchedTiles, FoundUnits, SearchDepth + 1);
+
+}
+
 bool AGameUnit::ReadyToSetUnitGray()
 {
 	return RemainingMovementSpaces == 0 && RemainingActions == 0;
@@ -148,7 +195,7 @@ void AGameUnit::InitializeSetUnitOnInitialTile()
 {
 	FVector actorLoc = GetActorLocation();
 	FVector traceLoc1, traceLoc2;
-	FHitResult traceResult;
+	TArray<FHitResult> traceResults;
 
 	FCollisionQueryParams CollisionParams;
 
@@ -156,8 +203,8 @@ void AGameUnit::InitializeSetUnitOnInitialTile()
 	traceLoc2 = FVector(actorLoc.X, actorLoc.Y, actorLoc.Z + (InitialTileVerticalRange / 2));
 
 	// Execute the north line trace
-	bool bTraceHit = GetWorld()->LineTraceSingleByChannel(
-		traceResult,
+	bool bTraceHit = GetWorld()->LineTraceMultiByChannel(
+		traceResults,
 		traceLoc1,
 		traceLoc2,
 		ECC_GameTraceChannel1, // Use the custom game trace channel
@@ -166,27 +213,33 @@ void AGameUnit::InitializeSetUnitOnInitialTile()
 
 	if (bTraceHit)
 	{
-		auto* hitTraceOwner = traceResult.Component->GetOwner();
-		if (auto* tile = Cast<AGameTile>(hitTraceOwner))
+		for (auto traceResult : traceResults)
 		{
-			float yaw = GetActorRotation().Yaw;
+			auto* hitTraceOwner = traceResult.Component->GetOwner();
+			if (auto* tile = Cast<AGameTile>(hitTraceOwner))
+			{
+				float yaw = GetActorRotation().Yaw;
 
-			if (yaw < 45.0f || yaw > 315.0f)
-			{
-				SetUnitLocAndRot(tile, ECardinalDirections::UP_DIR);
-			}
-			else if (yaw < 135.0f)
-			{
-				SetUnitLocAndRot(tile, ECardinalDirections::RIGHT_DIR);
-			}
-			else if (yaw < 225.0f)
-			{
-				SetUnitLocAndRot(tile, ECardinalDirections::DOWN_DIR);
-			}
-			else {
-				SetUnitLocAndRot(tile, ECardinalDirections::LEFT_DIR);
+				if ((yaw < 45.0f && yaw > -45) || (yaw > 315.0f || yaw < -315.0f))
+				{
+					SetUnitLocAndRot(tile, ECardinalDirections::UP_DIR);
+				}
+				else if (yaw < 135.0f && yaw > -135.0f)
+				{
+					SetUnitLocAndRot(tile, ECardinalDirections::RIGHT_DIR);
+				}
+				else if (yaw < 225.0f && yaw > -225)
+				{
+					SetUnitLocAndRot(tile, ECardinalDirections::DOWN_DIR);
+				}
+				else {
+					SetUnitLocAndRot(tile, ECardinalDirections::LEFT_DIR);
+				}
+
+				return;
 			}
 		}
+		
 	}
 }
 

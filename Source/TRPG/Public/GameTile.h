@@ -235,7 +235,7 @@ public:
 	static const uint8 GetTerrainTypeAsByte(AGameTile* Tile);
 
 	// Sets the unit to this tile
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	virtual void SetUnitOnTile(AGameUnit* Unit, ECardinalDirections Direction);
 
 	UFUNCTION(BlueprintCallable)

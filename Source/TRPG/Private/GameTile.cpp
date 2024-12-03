@@ -142,7 +142,6 @@ void AGameTile::SetUnitOnTile(AGameUnit* Unit, ECardinalDirections Direction)
 	}
 
 	CurrentUnit = Unit;
-	Unit->SetUnitLocAndRot(this, Direction);
 }
 
 AGameTile* AGameTile::GetNorthTile()

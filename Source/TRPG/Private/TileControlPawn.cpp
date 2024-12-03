@@ -783,6 +783,9 @@ void ATileControlPawn::SetUnitActionComplete(AGameUnit* Unit, bool AllowMovement
 		{
 			// unit is done, deselect this unit automatically
 			IsUnitChoosingAction = false;
+			ECardinalDirections newDir;
+			AGameTile* targetTile = PathControlcomponent->GetPathLastTile(newDir);
+			Unit->SetUnitLocAndRot(targetTile, newDir);
 			SetSelectedTile(nullptr, nullptr);
 		}
 	}

@@ -26,6 +26,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnitActivation, bool, Toggle);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTraveledToTile, AGameTile*, Tile);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnitConfirmOnTile, AGameTile*, Tile);
+
 
 // A combat actor that performs actions when controlled.
 UCLASS(Blueprintable)
@@ -45,12 +47,19 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// Fires when the unit is activated/deactivated and can/cannot take action
 	UPROPERTY(BlueprintAssignable, Category = "Tile")
-	FUnitActivation OnUnitActivation;						// Fires when the unit is activated/deactivated and can/cannot take action
+	FUnitActivation OnUnitActivation;						
 
+	// Fires when the unit reaches each tile when moving
 	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category = "Tile")
-	FTraveledToTile OnTraveledToTile;						// Fires when the unit reaches each tile when moving
+	FTraveledToTile OnTraveledToTile;						
 
+	// Fires when the unit performs an action and is locked onto a new tile
+	UPROPERTY(BlueprintAssignable, Category = "Tile")
+	FUnitConfirmOnTile OnUnitConfirmOnTile;					
+
+	// 0 = no faction | 1 = player | 2 = ally | 3 = enemy | 4 = npc
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 UnitFaction = EUnitFaction::NO_FACTION;
 
@@ -63,7 +72,7 @@ protected:
 
 	AGameTile* CurrentUnitTile;				// The current unit's tile
 
-	ECardinalDirections CurrentDirection;	// The current unit's direction
+	TEnumAsByte<ECardinalDirections> CurrentDirection;	// The current unit's direction
 
 	uint8 RemainingMovementSpaces = 0;		// Remaining unit spaces to move this turn.
 
@@ -79,7 +88,8 @@ public:
 
 	virtual void DeactivateUnitOnPhaseEnd();				// Called by the combat game mode. Disables control over this unit.
 
-	virtual void SetUnitLocAndRot(AGameTile* TargetTile, ECardinalDirections TargetDirection);	// Sets the unit on a specific tile - called by the unit itself
+	UFUNCTION(BlueprintCallable)
+	virtual void SetUnitLocAndRot(AGameTile* TargetTile, ECardinalDirections TargetDirection);	// Sets the unit on a specific tile
 
 	// Unit updating movement and actions during a turn.
 
@@ -116,6 +126,10 @@ public:
 	bool GetUnitEquippedWeaponRange(uint8& MinRange, uint8& MaxRange, bool& TargetsEnemies, bool& TargetsAllies);	// returns true if the unit has an equipped weapon. 
 
 	uint8 GetUnitMovementForTile(uint8 TerrainType);			// Gets the number of tiles a unit can pass on the target tile
+
+	// Unit surrounding data
+	UFUNCTION(BlueprintCallable)
+	void GetUnitsInRange(const uint8 MinRange, const uint8 MaxRange, const TArray<TEnumAsByte<EUnitFaction>> TargetFactions, AGameTile* CurrentTile, TArray<AGameTile*> SearchedTiles, TArray<AGameUnit*>& FoundUnits, const uint8 SearchDepth); // Find nearby units in range
 
 	// Setting unit to gray when no other action can be taken
 

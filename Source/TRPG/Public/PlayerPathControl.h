@@ -25,6 +25,8 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	virtual AGameTile* GetPathLastTile(ECardinalDirections& Direction);
+
 protected:
 
 	ATileControlPawn* TileControlPawn;	// Owner actor 
@@ -36,6 +38,8 @@ protected:
 	uint8 MaxMovementDist = 0;				// Max movement distance for the currently selected unit
 
 	TArray<AGameTile*> CurrentPath = TArray<AGameTile*>();	// The current path of tiles being displayed.
+
+	ECardinalDirections LastDirection;	// The final direction for the unit when moving.
 
 	uint8 TravelPathTilesTraveled = 0;
 

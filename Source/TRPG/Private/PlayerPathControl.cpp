@@ -32,6 +32,21 @@ void UPlayerPathControl::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	// ...
 }
 
+AGameTile* UPlayerPathControl::GetPathLastTile(ECardinalDirections& Direction)
+{
+	if (CurrentPath.IsEmpty())
+	{
+		Direction = ECardinalDirections::NONE;
+		return nullptr;
+	}
+
+	AGameTile* lastTile = CurrentPath.Last();
+
+	Direction = LastDirection;
+
+	return lastTile;
+}
+
 void UPlayerPathControl::BindToTileControlPawn()
 {
 	if (!GetOwner())
@@ -389,6 +404,7 @@ void UPlayerPathControl::BeginTravelingOnCurrentPath()
 	}
 
 	TravelPathTilesTraveled = 0;
+	LastDirection = ECardinalDirections::NONE;
 
 	if (CurrentPath.Num() <= 0)
 	{
@@ -417,6 +433,11 @@ void UPlayerPathControl::ContinueTravelingOnCurrentPath()
 		bool isAdj = AGameTile::GetTilesAreAdjacent(CurrentPath[TravelPathTilesTraveled-1], nextTile, isNorth, isEast, isSouth, isWest);
 		ECardinalDirections newDir = isNorth ? ECardinalDirections::UP_DIR : (isEast ? ECardinalDirections::RIGHT_DIR : (isSouth ? ECardinalDirections::DOWN_DIR : ECardinalDirections::LEFT_DIR));
 		TileControlPawn->SetUnitMovingToTile(SelectedUnit, nextTile, newDir);
+
+		if (!(CurrentPath.IsValidIndex(TravelPathTilesTraveled + 1)))
+		{
+			LastDirection = newDir;
+		}
 	}
 	else
 	{
