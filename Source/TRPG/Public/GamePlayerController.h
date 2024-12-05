@@ -136,5 +136,5 @@ protected:
 	virtual void CombatPhaseChanged(ECombatPhase NewPhase, ECombatPhase PreviousPhase, uint8 TurnNumber);	// binding from game mode on phase change
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void DisplayPhaseChange(ECombatPhase NewPhase);
+	void DisplayPhaseChange(ECombatPhase NewPhase);	// Displays a phase change screen
 };

@@ -223,8 +223,9 @@ protected:
 	// Selected tile/unit movement/pathfinding control
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void UnitReadyForActions(AGameUnit* Unit, AGameTile* Tile);	// Called when a unit is moved to a new tile - triggers a new menu 
+	void UnitReadyForActions(AGameUnit* Unit, AGameTile* Tile);		// Called when a unit is moved to a new tile - triggers a new menu 
 
+	// Movement and tile selection
 	UFUNCTION(BlueprintCallable)
 	virtual void CancelUnitMovementAndAction();						// Called when a unit should be returned to their old position and the move should be undone
 

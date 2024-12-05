@@ -32,7 +32,7 @@ protected:
 public:
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
-	void InitializeMovementMap();			// blueprint function to initialize the movement map
+	void InitializeMovementMap();			// blueprint function to initialize the movement map (mapping tile types to move costs)
 
 	UFUNCTION(BlueprintCallable)
 	void SetMovementMap(TMap<uint8, FTerrainInfo> NewTerrainData);
