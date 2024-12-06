@@ -142,6 +142,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetUnitGray(bool Toggle);					// Sets the unit to grayscale when true and back to normal colors when false
 
+	static void SortGameUnitsByLoc(TArray<AGameUnit*>& Units);
+	
+
 protected:
 
 	virtual void InitializeSetUnitOnInitialTile();	// Traces for a tile below this unit and links with it if one is found

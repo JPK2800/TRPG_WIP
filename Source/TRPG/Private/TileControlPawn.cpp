@@ -186,6 +186,109 @@ void ATileControlPawn::CancelUnitMovementAndAction()
 
 }
 
+void ATileControlPawn::SetUnitTargetingPhase(TArray<AGameUnit*> TargetableUnits)
+{
+	// Sort by X/Y positions
+	TargetableActionUnits = TargetableUnits;
+
+	AGameUnit::SortGameUnitsByLoc(TargetableActionUnits);
+
+	SetTargetNextUnit();
+
+	IsUnitChoosingActionTarget = true;
+}
+
+void ATileControlPawn::SetTargetNextUnit()
+{
+	if (CurrentTargetableActionUnit)
+	{
+		if (TargetableActionUnits.IsValidIndex(CurrentTargetUnitIndex + 1))
+		{
+			// there is a next unit
+			CurrentTargetUnitIndex++;
+			CurrentTargetableActionUnit = TargetableActionUnits[CurrentTargetUnitIndex];
+		}
+		else
+		{
+			// looped through all units - back to first unit
+			CurrentTargetUnitIndex = 0;
+			CurrentTargetableActionUnit = TargetableActionUnits[0];
+		}
+	}
+	else if (!TargetableActionUnits.IsEmpty())
+	{
+		// no target yet - target first unit
+		CurrentTargetUnitIndex = 0;
+		CurrentTargetableActionUnit = TargetableActionUnits[0];
+	}
+
+	OnTargetTile.Broadcast(CurrentTargetableActionUnit);
+
+	if (CurrentTargetableActionUnit)
+	{
+		AGameTile* targTile = CurrentTargetableActionUnit->GetCurrentUnitTile();
+		if (targTile)
+		{
+			SetHoverTile(targTile);
+			SetViewTile(targTile, false);
+		}
+	}
+}
+
+void ATileControlPawn::SetTargetPrevUnit()
+{
+	if (CurrentTargetableActionUnit)
+	{
+		if (TargetableActionUnits.IsValidIndex(CurrentTargetUnitIndex - 1))
+		{
+			// there is a prev unit
+			CurrentTargetUnitIndex--;
+			CurrentTargetableActionUnit = TargetableActionUnits[CurrentTargetUnitIndex];
+		}
+		else
+		{
+			// this was the first unit - target the last unit
+			CurrentTargetableActionUnit = TargetableActionUnits[TargetableActionUnits.Num() - 1];
+		}
+	}
+	else if (!TargetableActionUnits.IsEmpty())
+	{
+		// no target yet - target first unit
+		CurrentTargetUnitIndex = 0;
+		CurrentTargetableActionUnit = TargetableActionUnits[0];
+	}
+
+	OnTargetTile.Broadcast(CurrentTargetableActionUnit);
+
+	if (CurrentTargetableActionUnit)
+	{
+		AGameTile* targTile = CurrentTargetableActionUnit->GetCurrentUnitTile();
+		if (targTile)
+		{
+			SetHoverTile(targTile);
+			SetViewTile(targTile, false);
+		}
+	}
+}
+
+void ATileControlPawn::CancelUnitTargetingPhase()
+{
+	TargetableActionUnits.Empty();
+	CurrentTargetUnitIndex = 0;
+	CurrentTargetableActionUnit = nullptr;
+
+	IsUnitChoosingActionTarget = false;
+
+	ECardinalDirections targDir;
+	AGameTile* destTile = PathControlcomponent->GetPathLastTile(targDir);
+	SetHoverTile(destTile);
+	SetViewTile(destTile, false);
+
+	OnTargetTile.Broadcast(nullptr);
+	OnCancelTargetingUnits.Broadcast();
+
+}
+
 void ATileControlPawn::GetAvailableTilesForSelectedUnit(AGameTile* SelectedTile, AGameUnit* CurrentSelectedUnit, TArray<AGameTile*>& FoundNavigableTiles, TArray<AGameTile*>& FoundAttackableTiles, TArray<AGameTile*>& FoundInteractableTiles)
 {
 	if (!CurrentSelectedUnit || !SelectedTile)
@@ -413,7 +516,7 @@ void ATileControlPawn::SetCameraYaw(ECardinalDirections NewCardinalDir)
 
 void ATileControlPawn::CursorMoveUp()
 {
-	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction)
+	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction && !IsUnitChoosingActionTarget)
 	{
 		AGameTile* nextTile;
 		switch (CurrentViewRotation)
@@ -441,11 +544,15 @@ void ATileControlPawn::CursorMoveUp()
 			SetViewTile(nextTile, false);
 		}
 	}
+	else if (IsUnitChoosingActionTarget)
+	{
+		SetTargetPrevUnit();
+	}
 }
 
 void ATileControlPawn::CursorMoveDown()
 {
-	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction)
+	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction && !IsUnitChoosingActionTarget)
 	{
 		AGameTile* nextTile;
 		switch (CurrentViewRotation)
@@ -472,12 +579,16 @@ void ATileControlPawn::CursorMoveDown()
 			SetHoverTile(nextTile);
 			SetViewTile(nextTile, false);
 		}
+	}
+	else if (IsUnitChoosingActionTarget)
+	{
+		SetTargetNextUnit();
 	}
 }
 
 void ATileControlPawn::CursorMoveLeft()
 {
-	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction)
+	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction && !IsUnitChoosingActionTarget)
 	{
 		AGameTile* nextTile;
 		switch (CurrentViewRotation)
@@ -505,11 +616,15 @@ void ATileControlPawn::CursorMoveLeft()
 			SetViewTile(nextTile, false);
 		}
 	}
+	else if (IsUnitChoosingActionTarget)
+	{
+		SetTargetPrevUnit();
+	}
 }
 
 void ATileControlPawn::CursorMoveRight()
 {
-	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction)
+	if (HoverTile && IsPlayerPhase && !IsPausedForEvent && !IsUnitMoving && !IsUnitChoosingAction && !IsUnitChoosingActionTarget)
 	{
 		AGameTile* nextTile;
 		switch (CurrentViewRotation)
@@ -536,6 +651,10 @@ void ATileControlPawn::CursorMoveRight()
 			SetHoverTile(nextTile);
 			SetViewTile(nextTile, false);
 		}
+	}
+	else if (IsUnitChoosingActionTarget)
+	{
+		SetTargetNextUnit();
 	}
 }
 
@@ -629,7 +748,7 @@ void ATileControlPawn::InputSelectTile()
 		return;
 	}
 
-	if (HoverTile && !SelectedTile && !IsUnitMoving && !IsUnitChoosingAction)	// Select a unit
+	if (HoverTile && !SelectedTile && !IsUnitMoving && !IsUnitChoosingAction && !IsUnitChoosingActionTarget)	// Select a unit
 	{
 		AGameUnit* foundUnit;
 		if (HoverTile->GetUnitOnTile(foundUnit)) // Get unit
@@ -649,12 +768,16 @@ void ATileControlPawn::InputSelectTile()
 			SetSelectedTile(HoverTile, foundUnit);	// set selected unit and tile
 		}
 	}
-	else if (HoverTile && SelectedTile && !IsUnitMoving && !IsUnitChoosingAction)	// Select a destination for the unit
+	else if (HoverTile && SelectedTile && !IsUnitMoving && !IsUnitChoosingAction && !IsUnitChoosingActionTarget)	// Select a destination for the unit
 	{
 		if (HoverTile && HoverTile->GetIsNavigable())
 		{
 			OnTileMovementConfirm.Broadcast();
 		}
+	}
+	else if (IsUnitChoosingActionTarget)	// choosing a target for an action
+	{
+		UnitActionTargetUnitConfirmed(CurrentTargetableActionUnit);
 	}
 	else if (IsUnitMoving || IsUnitChoosingAction)
 	{
@@ -667,18 +790,22 @@ void ATileControlPawn::InputCancelTile()
 {
 	if (IsPlayerPhase && SelectedTile)
 	{
-		if (IsUnitMoving && !IsUnitChoosingAction)
+		if (IsUnitMoving && !IsUnitChoosingAction && !IsUnitChoosingActionTarget)
 		{
 			// if a unit is moving, undo the move but keep the unit selected
 			// if the unit is moved, undo is done through the unit turn menu
 			CancelUnitMovementAndAction();
 		}
-		else if (!IsUnitMoving && !IsUnitChoosingAction)
+		else if (!IsUnitMoving && !IsUnitChoosingAction && !IsUnitChoosingActionTarget)
 		{
 			// if the unit has not moved yet, undo the unit selection
 			SetSelectedTile(nullptr, nullptr);
 		}
-
+		else if (IsUnitChoosingActionTarget)
+		{
+			// cancel unit action
+			CancelUnitTargetingPhase();
+		}
 	}
 }
 
@@ -695,6 +822,20 @@ const AGameTile* ATileControlPawn::GetHoverTile()
 const AGameTile* ATileControlPawn::GetSelectedTile()
 {
 	return SelectedTile;
+}
+
+const AGameTile* ATileControlPawn::GetUnitDestinationTile(TEnumAsByte<ECardinalDirections>& TargetDir)
+{
+	if (!PathControlcomponent)
+	{
+		TargetDir = ECardinalDirections::NONE;
+		return nullptr;
+	}
+
+	ECardinalDirections destDir;
+	auto* tile = PathControlcomponent->GetPathLastTile(destDir);
+	TargetDir = destDir;
+	return tile;
 }
 
 void ATileControlPawn::SetViewTile(AGameTile* Tile, bool SnapImmediately)
@@ -761,6 +902,7 @@ void ATileControlPawn::SetUnitMovedToTile(AGameUnit* Unit, AGameTile* Tile)
 	// Unit moved to the target tile - now display options on the new tile
 	IsUnitMoving = false;
 	IsUnitChoosingAction = true;
+	OnTileMovementComplete.Broadcast();
 	UnitReadyForActions(Unit, Tile);
 }
 

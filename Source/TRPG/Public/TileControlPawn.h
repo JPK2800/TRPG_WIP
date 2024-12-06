@@ -39,6 +39,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTileView, AGameTile*, Tile);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUnitTileSelected, AGameTile*, SelectedTile, AGameUnit*, SelectedUnit);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTileMovementConfirm);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTileMovementComplete);
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTargetUnit, AGameUnit*, Unit);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCancelTargetingUnits);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCancelUnitSelection);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCancelUnitMovementAndAction);
@@ -91,6 +96,15 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Unit Actions")
 	FTileMovementConfirm OnTileMovementConfirm;	// Fires when a unit is selected and confirm is pressed - only checks if the hovered tile is navigable
 
+	UPROPERTY(BlueprintAssignable, Category = "Unit Actions")
+	FTileMovementComplete OnTileMovementComplete;	// Fires when a unit is selected and confirm is pressed and the unit finished moving to the destination tile
+
+	UPROPERTY(BlueprintAssignable, Category = "Unit Actions")
+	FTargetUnit OnTargetTile;					// Fires when a new unit is being targeted for an action
+
+	UPROPERTY(BlueprintAssignable, Category = "Unit Actions")
+	FCancelTargetingUnits OnCancelTargetingUnits;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	FZoomLevelData ZoomMaxSettings;				// Settings when zoomed in
 
@@ -113,6 +127,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual const AGameTile* GetSelectedTile();		// returns the current hover tile
+
+	UFUNCTION(BlueprintCallable)
+	virtual const AGameTile* GetUnitDestinationTile(TEnumAsByte<ECardinalDirections>& TargetDir);	// returns the tile where a unit is set to move
 
 	UFUNCTION(BlueprintCallable)
 	virtual void SetViewTile(AGameTile* Tile, bool SnapImmediately);		// sets the view tile. SnapImmediately will remove camera lag.
@@ -148,6 +165,8 @@ protected:
 	bool IsUnitMoving = false;		// True if a unit is being moved
 
 	bool IsUnitChoosingAction = false;	// True if a unit is moved and an action is being selected
+
+	bool IsUnitChoosingActionTarget = false;	// True if a unit is moved, chose an action, and is selecting a target
 
 	// Root component (SceneComponent)
 	UPROPERTY(VisibleAnywhere)
@@ -194,6 +213,10 @@ protected:
 	TArray<AGameTile*> AttackableTiles = TArray<AGameTile*>();		// Tiles that can be attacked when a unit is selected
 	TArray<AGameTile*> InteractableTiles = TArray<AGameTile*>();	// Tiles that can be interacted with when a unit is selected
 
+	TArray<AGameUnit*> TargetableActionUnits = TArray<AGameUnit*>();		// Units that can be targeted for a current action
+	AGameUnit* CurrentTargetableActionUnit = nullptr;						// The current targetet unit for a current action
+	uint8 CurrentTargetUnitIndex = 0;
+
 protected:
 
 	// Binding/linking to other actors in the world
@@ -228,6 +251,22 @@ protected:
 	// Movement and tile selection
 	UFUNCTION(BlueprintCallable)
 	virtual void CancelUnitMovementAndAction();						// Called when a unit should be returned to their old position and the move should be undone
+
+	// Action target selection
+	UFUNCTION(BlueprintCallable)
+	virtual void SetUnitTargetingPhase(TArray<AGameUnit*> TargetableUnits);	// Called when this unit is choosing between the parameter units for their action
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetTargetNextUnit();								// Targets next unit when choosing a target
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetTargetPrevUnit();								// Targets next unit when choosing a target
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UnitActionTargetUnitConfirmed(AGameUnit* TargetUnit);		// Confirmed target for an action - ready to begin animation sequence
+
+	UFUNCTION()
+	virtual void CancelUnitTargetingPhase();								// Called when this unit is no longer choosing between units for their action
 
 	// Gets selected-unit surrounding tile displays and signals to the tiles to display this info. Saves these tile pointers.
 	static void GetAvailableTilesForSelectedUnit(AGameTile* CurrentSelectedUnit, AGameUnit* SelectedUnit, TArray<AGameTile*>& NavigableTiles, TArray<AGameTile*>& AttackableTiles, TArray<AGameTile*>& InteractableTiles);

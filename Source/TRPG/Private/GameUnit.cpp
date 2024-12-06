@@ -191,6 +191,27 @@ bool AGameUnit::ReadyToSetUnitGray()
 	return RemainingMovementSpaces == 0 && RemainingActions == 0;
 }
 
+void AGameUnit::SortGameUnitsByLoc(TArray<AGameUnit*>& Units)
+{
+	
+	Algo::Sort(Units, [](AGameUnit*& A, AGameUnit*& B)
+		{
+			FVector locA = A->GetActorLocation();
+			FVector locB = B->GetActorLocation();
+			// sort by Y first, then X
+			if (locA.Y > locB.Y)
+				return true;
+			if (locA.Y < locB.Y)
+				return false;
+
+			// sort by X now
+			if (locA.X < locB.X)
+				return true;
+
+			return false;
+		});
+}
+
 void AGameUnit::InitializeSetUnitOnInitialTile()
 {
 	FVector actorLoc = GetActorLocation();
