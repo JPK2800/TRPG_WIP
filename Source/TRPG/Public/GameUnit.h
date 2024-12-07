@@ -91,6 +91,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetUnitLocAndRot(AGameTile* TargetTile, ECardinalDirections TargetDirection);	// Sets the unit on a specific tile
 
+	// Unit updating movement and actions during a turn.
+	UFUNCTION(BlueprintCallable)
+	virtual void SetCurrentUnitDirection(ECardinalDirections NewDir);
+
 	// Get tile info
 
 	UFUNCTION(BlueprintPure, BlueprintCallable)
@@ -98,10 +102,6 @@ public:
 
 	UFUNCTION(BlueprintPure, BlueprintCallable)
 	virtual ECardinalDirections GetCurrentUnitDirection();
-
-	// Unit updating movement and actions during a turn.
-
-	virtual void SetCurrentUnitDirection(ECardinalDirections NewDir);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void MoveUnitToTile(AGameTile* Tile);
