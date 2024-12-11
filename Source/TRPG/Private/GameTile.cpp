@@ -33,7 +33,6 @@ void AGameTile::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	InitializeLinkToNeighbors();
 	TerrainTypeByte = GetTerrainTypeByte();
 }
 
@@ -44,17 +43,24 @@ void AGameTile::Tick(float DeltaTime)
 
 }
 
-bool AGameTile::GetIsNavigable()
+void AGameTile::PreSave(FObjectPreSaveContext SaveContext)
+{
+	Super::PreSave(SaveContext);
+
+	InitializeLinkToNeighbors();
+}
+
+const bool AGameTile::GetIsNavigable()
 {
 	return IsNavigable;
 }
 
-bool AGameTile::GetIsAttackable()
+const bool AGameTile::GetIsAttackable()
 {
 	return IsAttackable;
 }
 
-bool AGameTile::GetIsInteractable()
+const bool AGameTile::GetIsInteractable()
 {
 	return IsInteractable;
 }

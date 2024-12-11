@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "GameFramework/Actor.h"
+#include "UObject/ObjectSaveContext.h"
 #include "GameTile.generated.h"
 
 class AGameUnit;
@@ -170,12 +171,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TEnumAsByte<ECardinalDirections> StartingUnitDirection = ECardinalDirections::DOWN_DIR;
 
-protected:
-
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	AGameTile* NorthTile;		// -Y axis - set by InitializeLinkToNeighbors()
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	AGameTile* WestTile;		// -X axis - set by InitializeLinkToNeighbors()
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	AGameTile* EastTile;		//  X axis - set by InitializeLinkToNeighbors()
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	AGameTile* SouthTile;		//  Y axis - set by InitializeLinkToNeighbors()
+
+protected:
 
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* PlaneTraceComponent;	// plane to be traced by adjacent tiles for initialization
@@ -190,14 +195,16 @@ protected:
 
 public:
 
-	UFUNCTION(BlueprintPure, BlueprintCallable)
-	bool GetIsNavigable();	// Getter for IsNavigable
+	void PreSave(FObjectPreSaveContext SaveContext) override;
 
 	UFUNCTION(BlueprintPure, BlueprintCallable)
-	bool GetIsAttackable();	// Getter for IsNavigable
+	const bool GetIsNavigable();	// Getter for IsNavigable
 
 	UFUNCTION(BlueprintPure, BlueprintCallable)
-	bool GetIsInteractable();	// Getter for IsNavigable
+	const bool GetIsAttackable();	// Getter for IsNavigable
+
+	UFUNCTION(BlueprintPure, BlueprintCallable)
+	const bool GetIsInteractable();	// Getter for IsNavigable
 
 	// Called when the player hovers this tile actor.
 	virtual void TriggerTileHover();
