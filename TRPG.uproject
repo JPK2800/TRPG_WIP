@@ -20,6 +20,18 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "ActorSequence",
+			"Enabled": false
+		},
+		{
+			"Name": "EnvironmentQueryEditor",
+			"Enabled": false
+		},
+		{
+			"Name": "AlembicImporter",
+			"Enabled": false
 		}
 	]
 }

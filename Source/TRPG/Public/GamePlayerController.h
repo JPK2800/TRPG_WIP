@@ -130,6 +130,8 @@ public:
 
 protected:
 
+	virtual void ApplyUnlitSettings();
+
 	virtual bool LinkToCombatGameMode();	// Makes a binding to the game mode to display phase shifts on the ui
 
 	UFUNCTION()

@@ -5,6 +5,8 @@
 
 void AGamePlayerController::BeginPlay()
 {
+	ApplyUnlitSettings();
+
 	Super::BeginPlay();
 
 	LinkToCombatGameMode();
@@ -83,6 +85,29 @@ void AGamePlayerController::TriggerCamDown()
 void AGamePlayerController::TriggerMenu()
 {
 	OnMenuPress.Broadcast();
+}
+
+void AGamePlayerController::ApplyUnlitSettings()
+{
+	FString Command = "ShowFlag.Tonemapper 0";
+	ConsoleCommand(*Command);
+
+	// The below commands are for the shipping
+	// build.
+	Command = "r.TonemapperGamma 0";
+	ConsoleCommand(*Command);
+
+	Command = "r.TonemapperFilm 0";
+	ConsoleCommand(*Command);
+
+	Command = "r.Tonemapper.Sharpen 0";
+	ConsoleCommand(*Command);
+
+	Command = "r.Tonemapper.GrainQuantization 0";
+	ConsoleCommand(*Command);
+
+	Command = "r.Tonemapper.Quality 0";
+	ConsoleCommand(*Command);
 }
 
 bool AGamePlayerController::LinkToCombatGameMode()
