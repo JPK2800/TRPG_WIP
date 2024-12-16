@@ -411,6 +411,13 @@ void UPlayerPathControl::BeginTravelingOnCurrentPath()
 		return; // need at least one tile to traverse
 	}
 
+	if (CurrentPath.Num() == 1)
+	{
+		// moving onto the current tile, do nothing
+		UnitMovedToTile(CurrentPath.Last());
+		return;
+	}
+
 	AGameTile* firstTile = CurrentPath[0];
 	IsUnitMoving = true;
 
