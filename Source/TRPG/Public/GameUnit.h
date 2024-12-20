@@ -68,6 +68,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool IsMandatoryUnit;						// True if this unit is mandatory for deployment for combat
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	bool GenerateStatsOnSave = false;			// When true, unit stats are auto-generated on-save
+
 protected:
 
 	AGameTile* CurrentUnitTile;				// The current unit's tile
@@ -83,7 +86,6 @@ protected:
 public:
 
 	// Unit main events
-	
 	virtual void ActivateUnitOnPhaseStart();				// Called by the combat game mode. Enables control over this unit.
 
 	virtual void DeactivateUnitOnPhaseEnd();				// Called by the combat game mode. Disables control over this unit.
