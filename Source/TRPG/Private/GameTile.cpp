@@ -152,21 +152,157 @@ void AGameTile::SetUnitOnTile(AGameUnit* Unit, ECardinalDirections Direction)
 
 AGameTile* AGameTile::GetNorthTile()
 {
+	if (!NorthTile)
+	{
+		// double check there is no north tile
+		FVector actorLoc = GetActorLocation();
+		FVector northTraceLoc1 = FVector(actorLoc.X + AdjacentTileDistance, actorLoc.Y, actorLoc.Z - (AdjacentTileVerticalRange / 2));
+		FVector northTraceLoc2 = FVector(actorLoc.X + AdjacentTileDistance, actorLoc.Y, actorLoc.Z + (AdjacentTileVerticalRange / 2));
+
+		FHitResult northTraceResult;
+
+		FCollisionQueryParams CollisionParams;
+		CollisionParams.AddIgnoredActor(this); // Optional, to ignore the actor making the trace
+
+		FCollisionObjectQueryParams ObjectQueryParams;
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);  // Only trace against static objects
+
+		// Execute the north line trace
+		bool bNorthHit = GetWorld()->LineTraceSingleByObjectType(
+			northTraceResult,
+			northTraceLoc1,
+			northTraceLoc2,
+			ObjectQueryParams,
+			CollisionParams
+		);
+
+		if (bNorthHit)
+		{
+			auto* northHitTraceOwner = northTraceResult.GetActor();
+			if (auto* northTile = Cast<AGameTile>(northHitTraceOwner))
+			{
+				NorthTile = northTile;
+			}
+		}
+	}
+
 	return NorthTile;
 }
 
 AGameTile* AGameTile::GetWestTile()
 {
+	if (!WestTile)
+	{
+		// double check there is no north tile
+		FVector actorLoc = GetActorLocation();
+		FVector westTraceLoc1 = FVector(actorLoc.X, actorLoc.Y - AdjacentTileDistance, actorLoc.Z - (AdjacentTileVerticalRange / 2));
+		FVector westTraceLoc2 = FVector(actorLoc.X, actorLoc.Y - AdjacentTileDistance, actorLoc.Z + (AdjacentTileVerticalRange / 2));
+
+		FHitResult westTraceResult;
+
+		FCollisionQueryParams CollisionParams;
+		CollisionParams.AddIgnoredActor(this); // Optional, to ignore the actor making the trace
+
+		FCollisionObjectQueryParams ObjectQueryParams;
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);  // Only trace against static objects
+
+		// Execute the north line trace
+		bool bWestHit = GetWorld()->LineTraceSingleByObjectType(
+			westTraceResult,
+			westTraceLoc1,
+			westTraceLoc2,
+			ObjectQueryParams,
+			CollisionParams
+		);
+
+		if (bWestHit)
+		{
+			auto* westHitTraceOwner = westTraceResult.GetActor();
+			if (auto* westTile = Cast<AGameTile>(westHitTraceOwner))
+			{
+				WestTile = westTile;
+			}
+		}
+	}
+
 	return WestTile;
 }
 
 AGameTile* AGameTile::GetSouthTile()
 {
+	if (!SouthTile)
+	{
+		// double check there is no north tile
+		FVector actorLoc = GetActorLocation();
+		FVector southTraceLoc1 = FVector(actorLoc.X - AdjacentTileDistance, actorLoc.Y, actorLoc.Z - (AdjacentTileVerticalRange / 2));
+		FVector southTraceLoc2 = FVector(actorLoc.X - AdjacentTileDistance, actorLoc.Y, actorLoc.Z + (AdjacentTileVerticalRange / 2));
+
+		FHitResult southTraceResult;
+
+		FCollisionQueryParams CollisionParams;
+		CollisionParams.AddIgnoredActor(this); // Optional, to ignore the actor making the trace
+
+		FCollisionObjectQueryParams ObjectQueryParams;
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);  // Only trace against static objects
+
+		// Execute the north line trace
+		bool bSouthHit = GetWorld()->LineTraceSingleByObjectType(
+			southTraceResult,
+			southTraceLoc1,
+			southTraceLoc2,
+			ObjectQueryParams,
+			CollisionParams
+		);
+
+		if (bSouthHit)
+		{
+			auto* southHitTraceOwner = southTraceResult.GetActor();
+			if (auto* southTile = Cast<AGameTile>(southHitTraceOwner))
+			{
+				SouthTile = southTile;
+			}
+		}
+	}
+
 	return SouthTile;
 }
 
 AGameTile* AGameTile::GetEastTile()
 {
+	if (!EastTile)
+	{
+		// double check there is no north tile
+		FVector actorLoc = GetActorLocation();
+		FVector eastTraceLoc1 = FVector(actorLoc.X, actorLoc.Y + AdjacentTileDistance, actorLoc.Z - (AdjacentTileVerticalRange / 2));
+		FVector eastTraceLoc2 = FVector(actorLoc.X, actorLoc.Y + AdjacentTileDistance, actorLoc.Z + (AdjacentTileVerticalRange / 2));
+
+		FHitResult eastTraceResult;
+
+		FCollisionQueryParams CollisionParams;
+		CollisionParams.AddIgnoredActor(this); // Optional, to ignore the actor making the trace
+
+		FCollisionObjectQueryParams ObjectQueryParams;
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);  // Only trace against static objects
+
+		// Execute the north line trace
+		bool bEastHit = GetWorld()->LineTraceSingleByObjectType(
+			eastTraceResult,
+			eastTraceLoc1,
+			eastTraceLoc2,
+			ObjectQueryParams,
+			CollisionParams
+		);
+
+		if (bEastHit)
+		{
+			auto* eastHitTraceOwner = eastTraceResult.GetActor();
+			if (auto* eastTile = Cast<AGameTile>(eastHitTraceOwner))
+			{
+				EastTile = eastTile;
+			}
+		}
+	}
+
 	return EastTile;
 }
 
@@ -255,14 +391,23 @@ void AGameTile::InitializeLinkToNeighbors()
 	);
 
 	// If the hit actor is a tile, then save it as an adjacent tile
+	
+	bool bFoundNorth = false, bFoundSouth = false, bFoundEast = false, bFoundWest = false;
+
 	if (bNorthHit)
 	{
 		auto* northHitTraceOwner = northTraceResult.GetActor();
 		if (auto* northTile = Cast<AGameTile>(northHitTraceOwner))
 		{
 			NorthTile = northTile;
+			bFoundNorth = true;
 		}
 	}
+	if (!bFoundNorth)
+	{
+		NorthTile = nullptr;
+	}
+
 
 	if (bWestHit)
 	{
@@ -270,7 +415,12 @@ void AGameTile::InitializeLinkToNeighbors()
 		if (auto* westTile = Cast<AGameTile>(westHitTraceOwner))
 		{
 			WestTile = westTile;
+			bFoundWest = true;
 		}
+	}
+	if (!bFoundWest)
+	{
+		WestTile = nullptr;
 	}
 
 	if (bEastHit)
@@ -279,7 +429,12 @@ void AGameTile::InitializeLinkToNeighbors()
 		if (auto* eastTile = Cast<AGameTile>(eastHitTraceOwner))
 		{
 			EastTile = eastTile;
+			bFoundEast = true;
 		}
+	}
+	if (!bFoundEast)
+	{
+		EastTile = nullptr;
 	}
 
 	if (bSouthHit)
@@ -288,7 +443,12 @@ void AGameTile::InitializeLinkToNeighbors()
 		if (auto* southTile = Cast<AGameTile>(southHitTraceOwner))
 		{
 			SouthTile = southTile;
+			bFoundSouth = true;
 		}
+	}
+	if (!bFoundSouth)
+	{
+		SouthTile = nullptr;
 	}
 }
 
