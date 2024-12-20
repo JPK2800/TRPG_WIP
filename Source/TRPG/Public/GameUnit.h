@@ -126,7 +126,7 @@ public:
 
 	// Unit weapon data / skill data / movement data - from blueprints
 
-	UFUNCTION(BlueprintPure, BlueprintImplementableEvent)
+	UFUNCTION(BlueprintPure, BlueprintImplementableEvent, Category="Inventory")
 	bool GetUnitEquippedWeaponRange(uint8& MinRange, uint8& MaxRange, bool& TargetsEnemies, bool& TargetsAllies);	// returns true if the unit has an equipped weapon. 
 
 	uint8 GetUnitMovementForTile(uint8 TerrainType);			// Gets the number of tiles a unit can pass on the target tile
