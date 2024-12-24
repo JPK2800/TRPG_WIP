@@ -14,8 +14,6 @@ void ACombatGameMode::BeginPlay()
 void ACombatGameMode::BeginFirstPhase()
 {
 	LinkToEventDataActor();
-
-	TriggerPreCombatLogic();
 }
 
 void ACombatGameMode::BeginNextCombatPhase()

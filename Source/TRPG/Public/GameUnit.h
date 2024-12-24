@@ -66,7 +66,7 @@ public:
 	float InitialTileVerticalRange = 300.0f;	// Range to trace for the initial tile this unit is standign on. Range of 100.0f means it will trace from Loc.Z - 50.0f to Loc.Z + 50.0f.
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool IsMandatoryUnit;						// True if this unit is mandatory for deployment for combat
+	bool IsPlayerMainUnit;						// True if this unit is the mandatory player unit - used for movement out of combat
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool GenerateStatsOnSave = false;			// When true, unit stats are auto-generated on-save

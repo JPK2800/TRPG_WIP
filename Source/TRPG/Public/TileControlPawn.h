@@ -158,6 +158,8 @@ public:
 
 protected:
 
+	bool IsOutOfCombat = true;	// True when the game is not in the combat state
+
 	bool IsPlayerPhase = false;	// True when the game is in player-phase and inputs can be made from the player controller.
 
 	bool IsPausedForEvent = false;	// True when a combat event is active 

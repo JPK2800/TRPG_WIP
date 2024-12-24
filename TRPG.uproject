@@ -370,6 +370,10 @@
 		{
 			"Name": "WmfMedia",
 			"Enabled": false
+		},
+		{
+			"Name": "BlueprintFileUtils",
+			"Enabled": true
 		}
 	]
 }

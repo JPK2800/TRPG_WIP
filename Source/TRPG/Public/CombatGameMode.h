@@ -17,7 +17,7 @@ class ATileControlPawn;
 UENUM(BlueprintType)
 enum ECombatPhase : uint8
 {
-	NO_PHASE					= 0					UMETA(DisplayName = "PAUSE_FOR_EVENT"),			
+	NO_PHASE					= 0					UMETA(DisplayName = "NO PHASE"),			
 	BEFORE_COMBAT				= 1					UMETA(DisplayName = "BEFORE_COMBAT"),			
 	AFTER_COMBAT				= 2					UMETA(DisplayName = "AFTER_COMBAT"),
 	GAME_OVER					= 3					UMETA(DisplayName = "GAME_OVER"),
@@ -54,11 +54,12 @@ public:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, Category = "Phases")
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Phases")
 	TEnumAsByte<ECombatPhase> CurrentCombatPhase = ECombatPhase::NO_PHASE;	// The current combat phase
 
 	AEventDataActor* EventData;				// Event Data actor found on each combat map with the LinkToEventDataActor function.
 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Phases")
 	uint8 TurnNumber = 1;					// Current turn number. Increments after each phase-loop. Starts at 1. 
 
 	bool IsPausedForEvent = false;			// True when the phase logic is paused for a dialogue event or scripted event
@@ -85,6 +86,7 @@ protected:
 
 	virtual bool LinkToEventDataActor();	// Links to the event data actor. Every phase change requires an event check. 
 
+	UFUNCTION(BlueprintCallable, Category="Combat")
 	virtual void TriggerPreCombatLogic();	// Triggers pre-combat events, like dialogue, before calling BeginNextCombatPhase() to begin. This is called on the level start.
 
 	virtual void PrepareUnitsOnPhaseShift(ECombatPhase NewPhase, ECombatPhase PreviousPhase);	// Updates unit states for the new phase.

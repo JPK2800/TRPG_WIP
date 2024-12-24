@@ -87,6 +87,16 @@ void ATileControlPawn::CombatPhaseChanged(ECombatPhase NewPhase, ECombatPhase Pr
 	{
 		EndPlayerPhase();
 	}
+
+	if (NewPhase == ECombatPhase::NO_PHASE)
+	{
+		// Out of combat controls
+		IsOutOfCombat = true;
+	}
+	else if (IsOutOfCombat)
+	{
+		IsOutOfCombat = false;
+	}
 }
 
 void ATileControlPawn::PauseForEvent(bool Toggle)
